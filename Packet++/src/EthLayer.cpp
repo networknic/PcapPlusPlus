@@ -1,5 +1,8 @@
 #define LOG_MODULE PacketLogModuleEthLayer
 
+// #nmt# added iostream for debugging
+#include <iostream>
+
 #include "EthLayer.h"
 #include "IPv4Layer.h"
 #include "IPv6Layer.h"
@@ -8,6 +11,7 @@
 #include "VlanLayer.h"
 #include "PPPoELayer.h"
 #include "MplsLayer.h"
+#include "MACsecLayer.h"
 #include "EndianPortable.h"
 #include <string.h>
 
@@ -65,6 +69,9 @@ void EthLayer::parseNextLayer()
 	case PCPP_ETHERTYPE_MPLS:
 		m_NextLayer = new MplsLayer(payload, payloadLen, this, m_Packet);
 		break;
+	case PCPP_ETHERTYPE_MACSEC:
+		m_NextLayer = new MACsecLayer(payload, payloadLen, this, m_Packet);
+		break;
 	default:
 		m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
 	}
@@ -88,6 +95,9 @@ void EthLayer::computeCalculateFields()
 		break;
 	case VLAN:
 		getEthHeader()->etherType = htobe16(PCPP_ETHERTYPE_VLAN);
+		break;
+	case MACsec:
+		getEthHeader()->etherType = htobe16(PCPP_ETHERTYPE_MACSEC);
 		break;
 	default:
 		return;

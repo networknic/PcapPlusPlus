@@ -98,6 +98,11 @@ namespace pcpp
 	const ProtocolType PPPoE = 0xc00;
 
 	/**
+	 * MACsec protocol 
+	 */
+	const ProtocolType MACsec = 0xf00;
+
+	/**
 	 * DNS protocol
 	 */
 	const ProtocolType DNS = 0x1000;

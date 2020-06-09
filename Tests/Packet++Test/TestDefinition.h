@@ -131,3 +131,7 @@ PTF_TEST_CASE(GtpLayerEditTest);
 PTF_TEST_CASE(BgpLayerParsingTest);
 PTF_TEST_CASE(BgpLayerCreationTest);
 PTF_TEST_CASE(BgpLayerEditTest);
+
+// Implemented in MACsecTests.cpp
+PTF_TEST_CASE(MACsecFrameCreation);
+
