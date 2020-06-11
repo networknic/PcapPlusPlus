@@ -134,4 +134,5 @@ PTF_TEST_CASE(BgpLayerEditTest);
 
 // Implemented in MACsecTests.cpp
 PTF_TEST_CASE(MACsecFrameCreation);
+PTF_TEST_CASE(MACsecFramePointerCreation);
 

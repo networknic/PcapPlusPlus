@@ -12,7 +12,6 @@ PTF_TEST_CASE(MACsecFrameCreation)
 	pcpp::MacAddress srcMac("aa:aa:aa:aa:aa:aa");
 	pcpp::MacAddress dstMac("bb:bb:bb:bb:bb:bb");
 	pcpp::EthLayer ethLayer(srcMac, dstMac, PCPP_ETHERTYPE_MACSEC);
-			
 
 	uint8_t tci = 0x0d;
 	uint8_t an = 0x00;
@@ -42,33 +41,25 @@ PTF_TEST_CASE(MACsecFrameCreation)
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::EthLayer>()->getSourceMac(), srcMac, object);
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::EthLayer>()->getEthHeader()->etherType, be16toh(PCPP_ETHERTYPE_MACSEC), u16);
 
-	// #nmt# add assertions for MACsec here. 
-	std::cout << "#nmt# CHECKING TCI " << std::endl;
+	PTF_ASSERT_NOT_NULL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>());
+	PTF_ASSERT_TRUE(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>() == &macsecLayer);
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecTCI(), tci, object);
-
-	std::cout << "#nmt# CHECKING AN " << std::endl;
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecAN(), an, object);
-	std::cout << "#nmt# CHECKING SL " << std::endl;
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecSL(), sl, object);
-
-	std::cout << "#nmt# CHECKING PN " << std::endl;
 	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecPN(), pn, object);
-	
-	std::cout << "#nmt# CHECKING SCI " << std::endl;
 	PTF_ASSERT_BUF_COMPARE(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecSCI(), SCI, 8);
-
 
 	pcpp::RawPacket* rawFrame = MACsecFrame.getRawPacket();
 	PTF_ASSERT_NOT_NULL(rawFrame);
 	PTF_ASSERT_EQUAL(rawFrame->getRawDataLen(), 48, int);
 
 	uint8_t expectedBuffer[48] = {
-		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, // dstMAC
-		0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,	// srcMAC
-		0x88, 0xE5, 						// EtherType
-		0x34, 0x55, 0xde, 0xad, 0xbe, 0xef, // TCI, SL, PN,
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 			// dstMAC
+		0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,				// srcMAC
+		0x88, 0xE5, 									// EtherType
+		0x34, 0x55, 0xde, 0xad, 0xbe, 0xef, 			// TCI, SL, PN,
 		0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,	0x00, 0x00, // SCI
-		0xc0, 0xca, 0xc0, 0x1a, 			// payload data
+		0xc0, 0xca, 0xc0, 0x1a, 						// payload data
 		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,	// ICV
 		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb
 	 };
@@ -77,8 +68,68 @@ PTF_TEST_CASE(MACsecFrameCreation)
 
 } // MACsecFrameCreation
 
-/*
+PTF_TEST_CASE(MACsecFramePointerCreation) {
 
+	pcpp::MacAddress srcMac("aa:aa:aa:aa:aa:aa");
+	pcpp::MacAddress dstMac("bb:bb:bb:bb:bb:bb");
+	pcpp::EthLayer* ethLayer = new pcpp::EthLayer(srcMac, dstMac, PCPP_ETHERTYPE_MACSEC);
+
+	uint8_t tci = 0x0d;
+	uint8_t an = 0x00;
+	uint8_t tci_an = (tci << 2) | an;
+	uint8_t sl = 0x55;
+	uint32_t pn = 0xdeadbeef;
+	uint8_t SCI[8] = { 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x00, 0x00 };	
+	pcpp::MACsecLayer* macsecLayer = new pcpp::MACsecLayer(tci_an, sl, pn, &SCI[0]);
+
+	// ICV must be added to payload and is then appended as trailer
+	uint8_t payload[] = { 0xc0, 0xca, 0xc0, 0x1a, 		// payload data
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,	// ICV
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,
+	 };
+	pcpp::PayloadLayer* payloadLayer = new pcpp::PayloadLayer(payload, 20, true);
+
+	pcpp::Packet *MACsecFrame = new pcpp::Packet(1);
+	PTF_ASSERT_TRUE(MACsecFrame->addLayer(ethLayer, true));
+	PTF_ASSERT_TRUE(MACsecFrame->addLayer(macsecLayer, true));
+	PTF_ASSERT_TRUE(MACsecFrame->addLayer(payloadLayer, true));
+
+	PTF_ASSERT_TRUE(MACsecFrame->isPacketOfType(pcpp::Ethernet));
+	PTF_ASSERT_NOT_NULL(MACsecFrame->getLayerOfType<pcpp::EthLayer>());
+	PTF_ASSERT_TRUE(MACsecFrame->getLayerOfType<pcpp::EthLayer>() == ethLayer);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::EthLayer>()->getDestMac(), dstMac, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::EthLayer>()->getSourceMac(), srcMac, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::EthLayer>()->getEthHeader()->etherType, be16toh(PCPP_ETHERTYPE_MACSEC), u16);
+
+	PTF_ASSERT_NOT_NULL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>());
+	PTF_ASSERT_TRUE(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>() == macsecLayer);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecTCI(), tci, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecAN(), an, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecSL(), sl, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecPN(), pn, object);
+	PTF_ASSERT_BUF_COMPARE(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecSCI(), SCI, 8);
+
+	pcpp::RawPacket* rawFrame = MACsecFrame->getRawPacket();
+	PTF_ASSERT_NOT_NULL(rawFrame);
+	PTF_ASSERT_EQUAL(rawFrame->getRawDataLen(), 48, int);
+
+	uint8_t expectedBuffer[48] = {
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 			// dstMAC
+		0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,				// srcMAC
+		0x88, 0xE5, 									// EtherType
+		0x34, 0x55, 0xde, 0xad, 0xbe, 0xef, 			// TCI, SL, PN,
+		0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa,	0x00, 0x00, // SCI
+		0xc0, 0xca, 0xc0, 0x1a, 						// payload data
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb,	// ICV
+		0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb
+	 };
+
+	PTF_ASSERT_BUF_COMPARE(rawFrame->getRawData(), expectedBuffer, 48);	
+	delete(MACsecFrame);
+
+}
+
+/*
 PTF_TEST_CASE(EthPacketPointerCreation)
 {
 	pcpp::MacAddress srcMac("aa:aa:aa:aa:aa:aa");
