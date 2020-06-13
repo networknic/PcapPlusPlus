@@ -129,67 +129,42 @@ PTF_TEST_CASE(MACsecFramePointerCreation) {
 
 }
 
-/*
-PTF_TEST_CASE(EthPacketPointerCreation)
-{
-	pcpp::MacAddress srcMac("aa:aa:aa:aa:aa:aa");
-	pcpp::MacAddress dstMac("bb:bb:bb:bb:bb:bb");
-	pcpp::EthLayer* ethLayer = new pcpp::EthLayer(srcMac, dstMac, PCPP_ETHERTYPE_IP);
+PTF_TEST_CASE(MACsecFrameParsing) {
 
-	uint8_t payload[] = { 0x01, 0x02, 0x03, 0x04 };
-	pcpp::PayloadLayer* payloadLayer = new pcpp::PayloadLayer(payload, 4, true);
+	uint8_t expectedTCI_AN = 0x2c;	
+	uint8_t expectedTCI = 0x0b;
+	uint8_t expectedAN = 0x00;
+	uint8_t expectedSL = 0x00;
+	uint32_t expectedPN = 0x0d;
+	uint8_t expectedSCI[8] = { 0xbc, 0x16, 0x65, 0x2b, 0x75, 0x0d, 0x00, 0x00 };
+	
+	pcpp::MacAddress expectedDstMac(0x01, 0x00, 0x0c, 0xcc, 0xcc, 0xcd);
+	pcpp::MacAddress expectedSrcMac(0xbc, 0x16, 0x65, 0x2b, 0x75, 0x0d);
 
-	pcpp::Packet* ethPacket = new pcpp::Packet(1);
-	PTF_ASSERT_TRUE(ethPacket->addLayer(ethLayer, true));
-	PTF_ASSERT_TRUE(ethPacket->addLayer(payloadLayer, true));
-
-	PTF_ASSERT_TRUE(ethPacket->isPacketOfType(pcpp::Ethernet));
-	PTF_ASSERT_NOT_NULL(ethPacket->getLayerOfType<pcpp::EthLayer>());
-	PTF_ASSERT_TRUE(ethPacket->getLayerOfType<pcpp::EthLayer>() == ethLayer);
-	PTF_ASSERT_EQUAL(ethPacket->getLayerOfType<pcpp::EthLayer>()->getDestMac(), dstMac, object);
-	PTF_ASSERT_EQUAL(ethPacket->getLayerOfType<pcpp::EthLayer>()->getSourceMac(), srcMac, object);
-	PTF_ASSERT_EQUAL(ethPacket->getLayerOfType<pcpp::EthLayer>()->getEthHeader()->etherType, be16toh(PCPP_ETHERTYPE_IP), u16);
-
-	pcpp::RawPacket* rawPacket = ethPacket->getRawPacket();
-	PTF_ASSERT_NOT_NULL(rawPacket);
-	PTF_ASSERT_EQUAL(rawPacket->getRawDataLen(), 18, int);
-
-	uint8_t expectedBuffer[18] = { 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xbb, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0x08, 0x00, 0x01, 0x02, 0x03, 0x04 };
-	PTF_ASSERT_BUF_COMPARE(rawPacket->getRawData(), expectedBuffer, 18);
-	delete(ethPacket);
-} // EthPacketPointerCreation
-
-
-PTF_TEST_CASE(EthAndArpPacketParsing)
-{
 	timeval time;
 	gettimeofday(&time, NULL);
 
-	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/ArpResponsePacket.dat");
-
+	READ_FILE_AND_CREATE_PACKET(1, "PacketExamples/MACsecFrame.dat");
 	pcpp::Packet ethPacket(&rawPacket1);
-	PTF_ASSERT_TRUE(ethPacket.isPacketOfType(pcpp::Ethernet));
-	PTF_ASSERT_NOT_NULL(ethPacket.getLayerOfType<pcpp::EthLayer>());
 
-	pcpp::MacAddress expectedSrcMac(0x30, 0x46, 0x9a, 0x23, 0xfb, 0xfa);
-	pcpp::MacAddress expectedDstMac(0x6c, 0xf0, 0x49, 0xb2, 0xde, 0x6e);
 	pcpp::EthLayer* ethLayer = ethPacket.getLayerOfType<pcpp::EthLayer>();
 	PTF_ASSERT_EQUAL(ethLayer->getDestMac(), expectedDstMac, object);
 	PTF_ASSERT_EQUAL(ethLayer->getSourceMac(), expectedSrcMac, object);
-	PTF_ASSERT_EQUAL(ethLayer->getEthHeader()->etherType, be16toh(PCPP_ETHERTYPE_ARP), hex);
+	PTF_ASSERT_EQUAL(ethLayer->getEthHeader()->etherType, be16toh(PCPP_ETHERTYPE_MACSEC), hex);
 
-	PTF_ASSERT_EQUAL(ethLayer->getNextLayer()->getProtocol(), pcpp::ARP, enum);
-	pcpp::ArpLayer* arpLayer = (pcpp::ArpLayer*)ethLayer->getNextLayer();
-	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->hardwareType, htobe16(1), u16);
-	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->protocolType, htobe16(PCPP_ETHERTYPE_IP), hex);
-	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->hardwareSize, 6, u8);
-	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->protocolSize, 4, u8);
-	PTF_ASSERT_EQUAL(arpLayer->getArpHeader()->opcode, htobe16(pcpp::ARP_REPLY), u16);
-	PTF_ASSERT_EQUAL(arpLayer->getSenderIpAddr(), pcpp::IPv4Address(std::string("10.0.0.138")), object);
-	PTF_ASSERT_EQUAL(arpLayer->getTargetMacAddress(), pcpp::MacAddress("6c:f0:49:b2:de:6e"), object);
-} // EthAndArpPacketParsing
+	PTF_ASSERT_EQUAL(ethLayer->getNextLayer()->getProtocol(), pcpp::MACsec, enum);
+	pcpp::MACsecLayer* macsecLayer = (pcpp::MACsecLayer*)ethLayer->getNextLayer();
 
+	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->TCI_AN, expectedTCI_AN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getMACsecTCI(), expectedTCI, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getMACsecAN(), expectedAN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->SL, expectedSL, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->PN, htobe32(expectedPN), u32);
+	PTF_ASSERT_BUF_COMPARE(macsecLayer->getMACsecHeader()->SCI, expectedSCI, 8);	
 
+}
+
+/*
 PTF_TEST_CASE(ArpPacketCreation)
 {
 	pcpp::MacAddress srcMac("6c:f0:49:b2:de:6e");
