@@ -136,3 +136,4 @@ PTF_TEST_CASE(BgpLayerEditTest);
 PTF_TEST_CASE(MACsecFrameCreation);
 PTF_TEST_CASE(MACsecFramePointerCreation);
 PTF_TEST_CASE(MACsecFrameParsing);
+PTF_TEST_CASE(MACsecFrameEdit);

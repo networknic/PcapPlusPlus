@@ -214,6 +214,7 @@ int main(int argc, char* argv[])
 	PTF_RUN_TEST(MACsecFrameCreation, "MACsec");
 	PTF_RUN_TEST(MACsecFramePointerCreation, "MACsec");
 	PTF_RUN_TEST(MACsecFrameParsing, "MACsec");
+	PTF_RUN_TEST(MACsecFrameEdit, "MACsec");
 
 	PTF_END_RUNNING_TESTS;
 }
