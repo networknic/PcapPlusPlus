@@ -34,29 +34,29 @@ MACsecLayer::MACsecLayer(uint8_t TCI_AN, uint8_t SL, uint32_t PN, uint8_t *SCI)
 
 }
 
-uint8_t MACsecLayer::getMACsecTCI() const 
+uint8_t MACsecLayer::getTCI() const 
 {
-	return (getMACsecHeader()->TCI_AN >> 2);	
+	return (getHeader()->TCI_AN >> 2);	
 }
 
-uint8_t MACsecLayer::getMACsecAN() const 
+uint8_t MACsecLayer::getAN() const 
 {
-	return (getMACsecHeader()->TCI_AN & 0x03);	
+	return (getHeader()->TCI_AN & 0x03);	
 }
 
-uint8_t MACsecLayer::getMACsecSL() const 
+uint8_t MACsecLayer::getSL() const 
 {
-	return getMACsecHeader()->SL;	
+	return getHeader()->SL;	
 }
 
-uint32_t MACsecLayer::getMACsecPN() const 
+uint32_t MACsecLayer::getPN() const 
 {
-	return htobe32(getMACsecHeader()->PN);	
+	return htobe32(getHeader()->PN);	
 }
 
-uint8_t* MACsecLayer::getMACsecSCI() const 
+uint8_t* MACsecLayer::getSCI() const 
 {
-	return &getMACsecHeader()->SCI[0];	
+	return &getHeader()->SCI[0];	
 }
 
 std::string MACsecLayer::parseMACsecTCI() const 
@@ -91,7 +91,7 @@ std::string MACsecLayer::parseMACsecTCI() const
 	 * The E bit indicates if encryption is active
 	 * this is interesting.
 	 */
-	if(getMACsecHeader()->TCI_AN & (1 << 3)) 
+	if(getHeader()->TCI_AN & (1 << 3)) 
 	{
 		streamTCIDetails << "Encryption On ";
 	} 
@@ -105,7 +105,7 @@ std::string MACsecLayer::parseMACsecTCI() const
 	 * is exactly the same as the user data with appended
 	 * ICV
 	 */
-	if(!(getMACsecHeader()->TCI_AN & (1 << 2))) 
+	if(!(getHeader()->TCI_AN & (1 << 2))) 
 	{
 		streamTCIDetails << "Secure Data == User Data ";
 	}
@@ -116,22 +116,22 @@ std::string MACsecLayer::parseMACsecTCI() const
 
 void MACsecLayer::setTCI_AN(uint8_t tci_an) 
 {
-	getMACsecHeader()->TCI_AN = tci_an;
+	getHeader()->TCI_AN = tci_an;
 }
 
 void MACsecLayer::setSL(uint8_t sl) 
 {
-	getMACsecHeader()->SL = sl;
+	getHeader()->SL = sl;
 }
 
 void MACsecLayer::setPN(uint32_t pn) 
 {
-	getMACsecHeader()->PN = htobe32(pn);
+	getHeader()->PN = htobe32(pn);
 }
 
 void MACsecLayer::setSCI(uint8_t *sci) 
 {
-	memcpy(getMACsecHeader()->SCI, sci, sizeof(uint8_t)*8);
+	memcpy(getHeader()->SCI, sci, sizeof(uint8_t)*8);
 }
 
 void MACsecLayer::parseNextLayer()
@@ -191,20 +191,20 @@ std::string MACsecLayer::toString() const
 {
 
 	std::ostringstream tciStream;
-	tciStream << std::hex <<(int)getMACsecTCI();
+	tciStream << std::hex <<(int)getTCI();
 
 	std::ostringstream anStream;
-	anStream << (int)getMACsecAN();
+	anStream << (int)getAN();
 
 	std::ostringstream slStream;
-	slStream << (int)getMACsecSL();
+	slStream << (int)getSL();
 
 	std::ostringstream pnStream;
-	pnStream << (uint32_t)getMACsecPN();
+	pnStream << (uint32_t)getPN();
 
 	std::ostringstream sciStream;
 	for(int i = 0; i < 8; i++) {
-		sciStream << std::hex << (int)*(getMACsecSCI()+i);
+		sciStream << std::hex << (int)*(getSCI()+i);
 	}
 
 	return "MACsec Layer, TCI: " + tciStream.str() + ", AN: " + anStream.str() + parseMACsecTCI() +", SL: " + slStream.str() + ", PN: " + pnStream.str() + ", SCI: " + sciStream.str() + ", ICV in Trailer... ";

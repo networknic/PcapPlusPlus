@@ -75,37 +75,37 @@ namespace pcpp
 		 * Get a pointer to the MACsec header. Notice this points directly to the data, so every change will change the actual packet data
 		 * @return A pointer to the macsec_header
 		 */
-		macsec_header* getMACsecHeader() const { return (macsec_header*)m_Data; }
+		macsec_header* getHeader() const { return (macsec_header*)m_Data; }
 
 		/**
 		 * extracts the TCI value of the MACsec SecTAG
 		 * @return TCI value
 		 */
-		uint8_t getMACsecTCI() const;
+		uint8_t getTCI() const;
 
 		/**
 		 * extracts the AN value of the MACsec SecTAG
 		 * @return AN value
 		 */
-		uint8_t getMACsecAN() const;
+		uint8_t getAN() const;
 
 		/**
 		 * extracts the SL value of the MACsec SecTAG
 		 * @return SL value
 		 */
-		uint8_t getMACsecSL() const;
+		uint8_t getSL() const;
 
 		/**
 		 * extracts the PN value of the MACsec SecTAG
 		 * @return PN value
 		 */
-		uint32_t getMACsecPN() const;
+		uint32_t getPN() const;
 
 		/**
 		 * extracts the SCI value of the MACsec SecTAG
 		 * @return SCI value
 		 */
-		uint8_t* getMACsecSCI() const;
+		uint8_t* getSCI() const;
 
 		/**
 		 * parses the TCI of the SecTAG

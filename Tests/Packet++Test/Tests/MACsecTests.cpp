@@ -43,11 +43,11 @@ PTF_TEST_CASE(MACsecFrameCreation)
 
 	PTF_ASSERT_NOT_NULL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>());
 	PTF_ASSERT_TRUE(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>() == &macsecLayer);
-	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecTCI(), tci, object);
-	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecAN(), an, object);
-	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecSL(), sl, object);
-	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecPN(), pn, object);
-	PTF_ASSERT_BUF_COMPARE(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getMACsecSCI(), SCI, 8);
+	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getTCI(), tci, object);
+	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getAN(), an, object);
+	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getSL(), sl, object);
+	PTF_ASSERT_EQUAL(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getPN(), pn, object);
+	PTF_ASSERT_BUF_COMPARE(MACsecFrame.getLayerOfType<pcpp::MACsecLayer>()->getSCI(), SCI, 8);
 
 	pcpp::RawPacket* rawFrame = MACsecFrame.getRawPacket();
 	PTF_ASSERT_NOT_NULL(rawFrame);
@@ -104,11 +104,11 @@ PTF_TEST_CASE(MACsecFramePointerCreation)
 
 	PTF_ASSERT_NOT_NULL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>());
 	PTF_ASSERT_TRUE(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>() == macsecLayer);
-	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecTCI(), tci, object);
-	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecAN(), an, object);
-	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecSL(), sl, object);
-	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecPN(), pn, object);
-	PTF_ASSERT_BUF_COMPARE(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getMACsecSCI(), SCI, 8);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getTCI(), tci, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getAN(), an, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getSL(), sl, object);
+	PTF_ASSERT_EQUAL(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getPN(), pn, object);
+	PTF_ASSERT_BUF_COMPARE(MACsecFrame->getLayerOfType<pcpp::MACsecLayer>()->getSCI(), SCI, 8);
 
 	pcpp::RawPacket* rawFrame = MACsecFrame->getRawPacket();
 	PTF_ASSERT_NOT_NULL(rawFrame);
@@ -156,12 +156,12 @@ PTF_TEST_CASE(MACsecFrameParsing) {
 	PTF_ASSERT_EQUAL(ethLayer->getNextLayer()->getProtocol(), pcpp::MACsec, enum);
 	pcpp::MACsecLayer* macsecLayer = (pcpp::MACsecLayer*)ethLayer->getNextLayer();
 
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->TCI_AN, expectedTCI_AN, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecTCI(), expectedTCI, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecAN(), expectedAN, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->SL, expectedSL, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->PN, htobe32(expectedPN), u32);
-	PTF_ASSERT_BUF_COMPARE(macsecLayer->getMACsecHeader()->SCI, expectedSCI, 8);	
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->TCI_AN, expectedTCI_AN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getTCI(), expectedTCI, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getAN(), expectedAN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->SL, expectedSL, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->PN, htobe32(expectedPN), u32);
+	PTF_ASSERT_BUF_COMPARE(macsecLayer->getHeader()->SCI, expectedSCI, 8);	
 
 }
 
@@ -189,16 +189,16 @@ PTF_TEST_CASE(MACsecFrameEdit)
 	macsecLayer->setPN(newPN);
 	macsecLayer->setSCI(&newSCI[0]);
 
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->TCI_AN, newTCI_AN, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->SL, newSL, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecHeader()->PN, htobe32(newPN), u32);
-	PTF_ASSERT_BUF_COMPARE(macsecLayer->getMACsecHeader()->SCI, newSCI, 8);	
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->TCI_AN, newTCI_AN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->SL, newSL, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getHeader()->PN, htobe32(newPN), u32);
+	PTF_ASSERT_BUF_COMPARE(macsecLayer->getHeader()->SCI, newSCI, 8);	
 
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecTCI(), newTCI, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecAN(), newAN, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecSL(), newSL, u8);
-	PTF_ASSERT_EQUAL(macsecLayer->getMACsecPN(), newPN, u32);
-	PTF_ASSERT_BUF_COMPARE(macsecLayer->getMACsecSCI(), newSCI, 8);	
+	PTF_ASSERT_EQUAL(macsecLayer->getTCI(), newTCI, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getAN(), newAN, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getSL(), newSL, u8);
+	PTF_ASSERT_EQUAL(macsecLayer->getPN(), newPN, u32);
+	PTF_ASSERT_BUF_COMPARE(macsecLayer->getSCI(), newSCI, 8);	
 
 
 } // MACsecFrameEdit
